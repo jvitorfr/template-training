@@ -1,34 +1,65 @@
-php:
-    image: php:8.0-apache
+version: "3.7"
+services:
+  php:
+    build:
+      args:
+        user: joaoribeiro
+        uid: 1000
+      context: ./backend
+      dockerfile: Dockerfile
+    image: container
     container_name: php-container
-    restart: always
+    restart: unless-stopped
     ports:
-        - "80:80"
-        - "443:443"
+      - "80:80"
+      - "443:443"
     volumes:
-        - /home/joaoribeiro/development/template-training/backend:/var/www/html
+       - ./backend:/var/www/html
+    networks:
+      - container
     links:
-        - db
-        - db:database
-db:
-    image: mysql:latest
-    container_name: mysql-container
-    restart: always
+      - db
+      - db:database
+  db:
+      image: mysql:latest
+      container_name: mysql-container
+      restart: always
+      ports:
+          - "3306:3306"
+      volumes:
+          -  ./backend/database/db:/var/www/mysql
+      environment:
+          - MYSQL_USER=root
+          - MYSQL_ROOT_PASSWORD=root
+      networks:
+        - container
+  vue:
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile
+      container_name: vue-container
+      image: node:12
+      ports:
+          - "8080:8080"
+      volumes:
+          - ./frontend:/srv/app
+      working_dir: /srv/app
+      command: 'npm run serve'
+      networks:
+        - container
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
     ports:
-        - "3306:3306"
+      - 8003:80
     volumes:
-        -  /home/joaoribeiro/development/template-training/backend/database/db:/var/www/mysql
-    environment:
-        - MYSQL_USER=root
-        - MYSQL_ROOT_PASSWORD=root
-vue:
-    container_name: vue-container
-    image: node:12
-    ports:
-        - "8080:8080"
-    volumes:
-        - ./frontend:/srv/app
-    working_dir: /srv/app
-    command: 'npm run serve'
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d
+    networks:
+      - container
 
+networks:
+  container:
+    driver: bridge
 
