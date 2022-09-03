@@ -5,38 +5,31 @@ services:
       args:
         user: joaoribeiro
         uid: 1000
-      context: ./backend
+      context: ./
       dockerfile: Dockerfile
-    image: container
+    image: template-training
     container_name: php-container
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    working_dir: /var/www/
     volumes:
-       - ./backend:/var/www/html
+      - ./backend:/var/www/
     networks:
-      - container
-    links:
-      - db
-      - db:database
+      - server
   db:
-      image: mysql:5.7
-      container_name: mysql-container
-      command: --default-authentication-plugin=mysql_native_password
-      restart: unless-stopped
-      volumes:
-          - ./docker-compose/mysql:/docker-entrypoint-initdb.d
-      ports:
-        - "3306:3306"
-      environment:
-        MYSQL_DATABASE: ${DB_DATABASE}
-        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-        MYSQL_PASSWORD: ${DB_PASSWORD}
-        SERVICE_TAGS: dev
-        SERVICE_NAME: mysql
-      networks:
-        - container
+    image: mysql:5.7
+    container_name: db-container
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - server
   vue:
       build:
         context: ./frontend
@@ -44,26 +37,26 @@ services:
       container_name: vue-container
       image: node:12
       ports:
-          - "8080:8080"
+          - "8081:8080"
       volumes:
           - ./frontend:/srv/app
       working_dir: /srv/app
       command: 'npm run serve'
       networks:
-        - container
+        - server
   nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: nginx-container
     restart: unless-stopped
     ports:
-      - 8003:80
+      - 8000:80
     volumes:
-      - ./:/var/www
-      - ./docker-compose/nginx:/etc/nginx/conf.d
+      - ./backend:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
     networks:
-      - container
+      - server
 
 networks:
-  container:
+  server:
     driver: bridge
 

@@ -12,5 +12,7 @@ if ($conn->connect_error) {
 }
 
 echo '<h2> CONEXÃO REALIZADA COM SUCESSO </h2>';
+echo $_SERVER['SERVER_PORT'];
+echo phpinfo();
   $conn->close();
 
