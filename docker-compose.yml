@@ -21,16 +21,20 @@ services:
       - db
       - db:database
   db:
-      image: mysql:latest
+      image: mysql:5.7
       container_name: mysql-container
-      restart: always
-      ports:
-          - "3306:3306"
+      command: --default-authentication-plugin=mysql_native_password
+      restart: unless-stopped
       volumes:
-          -  ./backend/database/db:/var/www/mysql
+          - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+      ports:
+        - "3306:3306"
       environment:
-          - MYSQL_USER=root
-          - MYSQL_ROOT_PASSWORD=root
+        MYSQL_DATABASE: ${DB_DATABASE}
+        MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+        MYSQL_PASSWORD: ${DB_PASSWORD}
+        SERVICE_TAGS: dev
+        SERVICE_NAME: mysql
       networks:
         - container
   vue:
