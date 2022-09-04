@@ -19,12 +19,15 @@ use App\Http\Controllers\TodoController;
 Route::apiResource('users', UserController::class);
 
 Route::controller(AuthController::class)->group(function () {
-  Route::post('login', 'login');
+  Route::post('login', [AuthController::class, 'login']);
   Route::post('register', 'register');
   Route::post('logout', 'logout');
   Route::post('refresh', 'refresh');
-
 });
+
+//Route::post('login', [AuthController::class, 'login']);
+//Route::get('/post/create', [PostController::class, 'create']);
+//Route::post('/post', [PostController::class, 'store']);
 //Route::post('register', [AuthController::class, 'register']);
 //Route::post('login', [AuthController::class, 'login']);
 
